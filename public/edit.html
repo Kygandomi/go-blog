@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Golang Blog Demo</title>
+  </head>
+  <body>
+    <h2>Edit Blog Post</h2>
+
+    <form id="formElem">
+      Title:<input type="text" id="title" name="title">
+      <br/>
+      Body:<input type="text" id="body" name="body">
+      <br/>
+      <input type="submit" value="Submit">
+    </form>
+    <a href="http://localhost:8080/home">Back to home</a>
+
+  </body>
+  <style>
+    form {
+      padding: 0px 15px;
+    }
+    a {
+      padding: 0px 15px;
+    }
+  </style>
+  <script>
+    // Get id from url
+    var url = window.location.pathname;
+    var id = url.substring(url.lastIndexOf('/') + 1);
+
+    // Get current post
+    fetch("/api/posts/" + id)
+      .then(response => response.json())
+      .then(post => {
+          var title_field = document.getElementById("title");
+          var body_field = document.getElementById("body");
+
+          title_field.value = post.title;
+          body_field.value = post.body;
+        })
+
+    // ===============================================
+    // Update the blog post
+    formElem.onsubmit = async (e) => {
+        // prepare request on form submit
+        e.preventDefault();
+        var form = document.querySelector("#formElem");
+        var data = {
+          title : form.querySelector('input[name="title"]').value,
+          body : form.querySelector('input[name="body"]').value,
+        }
+
+        // get from env vars
+        let response = await fetch('http://localhost:8080/api/posts/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+        }).then(
+          // go back to home page
+          location.replace('http://localhost:8080/home')
+        )
+    };
+
+  </script>
+</html>

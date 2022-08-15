@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Golang Blog Demo</title>
+  </head>
+  <body>
+    <h1>Golang Blog</h1>
+    <h4>Prepared by KT</h4>
+    <h2>Create a new blog post</h2>
+    <form id="formElem">
+        Title:<input type="text" id="title" name="title">
+        <br/>
+        Body:<input type="text" id="body" name="body">
+        <br/>
+        <input type="submit" value="Submit">
+    </form>
+    <br/>
+    <h2>Current blog posts:</h2>
+    <section class="container">
+      <table>
+        <tr>
+          <th>Title</th>
+          <th>Body</th>
+          <th>Actions</th>
+        </tr>
+      </table>
+    </section>
+
+  </body>
+  <style>
+    form {
+      padding: 0px 15px;
+    }
+    th {
+      padding: 0px 15px; 
+      text-align: left;
+    }
+    td {
+     padding: 0px 15px; 
+     text-align: left;
+    }
+    a {
+      margin-right: 10px;
+    }
+  </style>
+  <script>
+
+    // ===============================================
+    // Display all blog posts
+    post_table = document.querySelector("table")
+
+    fetch("/api/posts")
+      .then(response => response.json())
+      .then(postList => {
+          // Sort posts by id
+          postList.sort(function(a, b) { 
+            return a.id - b.id;
+          });
+
+          //Once we fetch the list, we iterate over it
+          postList.forEach(post => {
+            // Create the table row
+            row = document.createElement("tr")
+            row.setAttribute("id", "post-"+post.id);
+
+            // Create the table data elements for the species and
+            // description columns
+            post_title = document.createElement("td")
+            post_title.innerHTML = post.title
+            post_body = document.createElement("td")
+            post_body.innerHTML = post.body
+            post_actions = document.createElement("td")
+            post_actions.innerHTML = "<div><a href='#' onClick='deletePost(" + post.id + ")'>Delete</a><a href='http://localhost:8080/home/" + post.id + "'>Edit</a></div>"
+
+            // Add the data elements to the row
+            row.appendChild(post_title)
+            row.appendChild(post_body)
+            row.appendChild(post_actions)
+
+            // Finally, add the row element to the table itself
+            post_table.appendChild(row)
+          })
+        })
+
+    // ===============================================
+    // Create a new blog post
+    formElem.onsubmit = async (e) => {
+        // prepare request on form submit
+        e.preventDefault();
+        var form = document.querySelector("#formElem");
+        var data = {
+          title : form.querySelector('input[name="title"]').value,
+          body : form.querySelector('input[name="body"]').value,
+        }
+
+        // get from env vars
+        let response = await fetch('http://localhost:8080/api/posts', {
+                method: 'POST', // or 'PUT'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+        }).then(
+          // reload the page
+          location.reload()
+        )
+    };
+
+    // ===============================================
+    // Delete a blog post
+    async function deletePost(post_id) {
+      // Create response to delete this post
+      let response = await fetch('http://localhost:8080/api/posts/' + post_id, { 
+              method: 'DELETE' 
+          }).then(
+          // reload the page
+          location.reload()
+        )
+    }
+    
+  </script>
+</html>
